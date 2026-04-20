@@ -6,6 +6,10 @@ from treinos.models import Treino, TreinoItem
 from treinos.serializers.treino import TreinoSerializer  # ajuste seu import
 from treinos.permissions import IsProfessor
 from django.contrib.auth import get_user_model
+from execucoes.models import SessaoTreino
+from rest_framework.decorators import api_view
+
+
 
 User = get_user_model()
 
@@ -138,4 +142,71 @@ class TreinoViewSet(viewsets.ModelViewSet):
 
         return Response(data)
     
+    @action(detail=True, methods=["post"], url_path="iniciar")
+    def iniciar(self, request, pk=None):
+        treino = self.get_object()
+        user = request.user
+
+        # segurança: garantir que o treino é do aluno
+        if getattr(user, "role", None) == "ALUNO":
+            if treino.aluno_id != user.id:
+                return Response(
+                    {"detail": "Você não pode iniciar esse treino."},
+                    status=403
+                )
+
+        sessao = SessaoTreino.objects.create(
+            aluno=user,
+            treino=treino
+        )
+
+        return Response({
+            "sessao_id": sessao.id,
+            "status": sessao.status
+        }, status=201)
+    
+    @action(
+    detail=False,
+    methods=["get"],
+    url_path=r"sessao/(?P<sessao_id>\d+)"
+)
+    def detalhe_sessao(self, request, sessao_id=None):
+        sessao = SessaoTreino.objects.select_related("treino").get(id=sessao_id)
+
+        itens = sessao.treino.itens.select_related("exercicio").all().order_by("ordem")
+
+        return Response({
+            "id": sessao.id,
+            "treino": {
+                "id": sessao.treino.id,
+                "titulo": sessao.treino.titulo,
+            },
+            "exercicios": [
+                {
+                    "id": item.id,
+                    "nome": item.exercicio.nome,
+                    "series": item.series,
+                    "repeticoes": item.repeticoes,
+                }
+                for item in itens
+            ]
+        })
+    
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path=r"sessao/(?P<sessao_id>\d+)/finalizar"
+    )
+    def finalizar_sessao(self, request, sessao_id=None):
+        sessao = SessaoTreino.objects.get(id=sessao_id)
+
+        # segurança básica
+        if sessao.aluno != request.user:
+            return Response({"detail": "Acesso negado"}, status=403)
+
+        sessao.status = SessaoTreino.Status.CONCLUIDA
+        sessao.save()
+
+        return Response({"status": "ok"})
+        
     

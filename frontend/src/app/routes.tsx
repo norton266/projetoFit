@@ -11,6 +11,7 @@ import Templates from "../pages/professor/Templates"
 import DetalheTreino from "../pages/DetalheTreino"
 import ExercicioCreate from "../pages/professor/NovoExercicio"
 import CriarMusculo from "../pages/professor/CriarMusculo"
+import SessaoTreino from "../pages/SessaoTreino"
 
 
 export default function AppRoutes() {
@@ -24,6 +25,7 @@ export default function AppRoutes() {
         <Route path="cadastros-pendentes" element={<CadastrosPendentes />} />
         <Route path="treinos-por-aluno" element={<TreinosPorAluno />} />
         <Route path="/app/treinos/:id" element={<DetalheTreino/>} />
+        <Route path="sessao/:id" element={<SessaoTreino />}/>
         
       </Route>
       <Route path="/professor/treinos/novo" element={<NovoTreino />} />

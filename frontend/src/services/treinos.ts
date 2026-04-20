@@ -42,3 +42,9 @@ export async function listExerciciosDoTreino(treinoId: number): Promise<Exercici
   const { data } = await api.get(`/api/treinos/${treinoId}/exercicios/`)
   return data
 }
+
+export async function iniciarTreino(treinoId: number) {
+  const { data } = await api.post(`/api/treinos/${treinoId}/iniciar/`)
+  return data
+}
+

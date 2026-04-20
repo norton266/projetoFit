@@ -1,4 +1,8 @@
 import { useDashboardSummary } from "../../hooks/useDashboardSummary"
+import { useMeusTreinos } from "../../hooks/useMeusTreinos"
+import { useIniciarTreino } from "../../hooks/useIniciarTreino"
+import { useNavigate } from "react-router-dom"
+
 
 function StatCard({
   title,
@@ -21,6 +25,18 @@ function StatCard({
 
 export default function DashboardAluno() {
   const { data, isLoading } = useDashboardSummary()
+  const { data: treinos, isLoading: loadingTreinos } = useMeusTreinos()
+  const { mutate: iniciarTreino, isPending } = useIniciarTreino()
+  const navigate = useNavigate()
+
+  const handleStart = (treinoId: number) => {
+    iniciarTreino(treinoId, {
+      onSuccess: (data) => {
+        // redirecionar
+        navigate(`/app/sessao/${data.sessao_id}`)
+      }
+  })
+  }
 
   return (
     <div className="space-y-6">
@@ -48,18 +64,45 @@ export default function DashboardAluno() {
         />
       </div>
 
-      {/* Próximo treino */}
+      {/* Lista de treinos */}
       <div className="bg-white rounded-2xl border p-5">
-        <h2 className="font-semibold text-gray-900 mb-2">
-          Próximo treino
+        <h2 className="font-semibold text-gray-900 mb-3">
+          Seus treinos
         </h2>
-        <p className="text-sm text-gray-600">
-          Em breve você verá aqui o próximo treino programado.
-        </p>
 
-        <button className="mt-4 inline-flex items-center rounded-lg bg-gray-900 text-white px-4 py-2 text-sm font-medium hover:bg-black transition">
-          Iniciar treino
-        </button>
+        {loadingTreinos && (
+          <p className="text-sm text-gray-500">Carregando treinos...</p>
+        )}
+
+        {!loadingTreinos && treinos?.length === 0 && (
+          <p className="text-sm text-gray-500">
+            Nenhum treino disponível ainda.
+          </p>
+        )}
+
+        <div className="space-y-2">
+          {treinos?.map((treino) => (
+            <div
+              key={treino.id}
+              className="border rounded-lg p-3 flex justify-between items-center"
+            >
+              <div>
+                <p className="font-medium">{treino.titulo}</p>
+                <p className="text-xs text-gray-500">
+                  {treino.descricao}
+                </p>
+              </div>
+
+              <button
+                onClick={() => handleStart(treino.id)}
+                disabled={isPending}
+                className="bg-gray-900 text-white px-3 py-1 rounded-lg text-sm hover:bg-black disabled:opacity-50"
+              >
+                {isPending ? "..." : "Iniciar"}
+              </button>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )

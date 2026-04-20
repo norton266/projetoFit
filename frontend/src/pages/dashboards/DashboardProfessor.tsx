@@ -52,7 +52,13 @@ export default function DashboardProfessor() {
         <StatCard
           title="Alunos ativos"
           value={data?.alunos}
-          subtitle="Com sessões registradas"
+          subtitle="Aprovados por você"
+          loading={isLoading}
+        />
+        <StatCard 
+          title="Alunos pendentes"
+          value={data?.alunos_pendentes}
+          subtitle="Aguardando aprovação"
           loading={isLoading}
         />
         <StatCard

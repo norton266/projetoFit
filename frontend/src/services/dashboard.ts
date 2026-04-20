@@ -3,6 +3,7 @@ import { api } from "./api"
 export type DashboardSummary = {
   treinos: number
   alunos: number
+  alunos_pendentes: number
   sessoes: number
 }
 
